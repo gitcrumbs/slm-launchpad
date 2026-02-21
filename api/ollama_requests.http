@@ -1,0 +1,29 @@
+### Basic Chat
+POST http://localhost:11434/api/chat
+Content-Type: application/json
+
+{
+  "model": "phi3:mini",
+  "messages": [{"role": "user", "content": "Explain recursion in simple terms"}],
+  "stream": false
+}
+
+###  Code Generation
+POST http://localhost:11434/api/chat
+Content-Type: application/json
+
+{
+  "model": "phi3:mini",
+  "messages": [{"role": "user", "content": "Write a Python binary search function"}],
+  "stream": false
+}
+
+### Summarization
+POST http://localhost:11434/api/generate
+Content-Type: application/json
+
+{
+  "model": "phi3:mini",
+  "prompt": "Summarize in 2 sentences: The James Webb Space Telescope has revolutionized astronomy by capturing the deepest infrared images of the universe ever taken, revealing galaxies formed just 300 million years after the Big Bang.",
+  "stream": false
+}
