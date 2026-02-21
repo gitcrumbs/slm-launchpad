@@ -3,350 +3,248 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>localhost:11434 — Local SLM Workspace</title>
+<title>localhost:11434 — The Address Where My AI Lives</title>
+
+<!-- Open Graph -->
+<meta property="og:type"         content="website">
+<meta property="og:url"          content="https://gitcrumbs.github.io/slm-launchpad/">
+<meta property="og:title"        content="localhost:11434 — The Address Where My AI Lives">
+<meta property="og:description"  content="No cloud. No API keys. No monthly bill. Running 3 open-source AI models locally on an RTX 5070 and benchmarking every one.">
+<meta name="twitter:card"        content="summary_large_image">
+<meta name="twitter:title"       content="localhost:11434 — The Address Where My AI Lives">
+<meta name="twitter:description" content="No cloud. No API keys. No monthly bill. Running 3 AI models locally on RTX 5070.">
+<meta name="description"         content="A backyard AI experiment — running phi3:mini, mistral:7b and qwen2.5-coder:7b locally with Ollama on Windows. Full benchmark results and GPU telemetry included.">
+
+<!-- Favicon: terminal underscore -->
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='14' fill='%23060810'/><text y='74' x='10' font-size='72' font-family='monospace' fill='%2300ff88'>_</text></svg>">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+
 <style>
   :root {
-    --bg:       #060810;
-    --bg2:      #0b0e18;
-    --bg3:      #0f1220;
-    --border:   rgba(255,255,255,0.06);
-    --phi:      #a78bfa;
-    --phi-dim:  #4c1d95;
-    --mis:      #60a5fa;
-    --mis-dim:  #1e3a5f;
-    --qwen:     #34d399;
-    --qwen-dim: #064e3b;
-    --accent:   #00ff88;
-    --text:     #e2e8f0;
-    --muted:    #475569;
-    --mono:     'JetBrains Mono', monospace;
-    --sans:     'Syne', sans-serif;
+    --bg:      #060810;
+    --bg2:     #0b0e18;
+    --bg3:     #0f1220;
+    --border:  rgba(255,255,255,0.06);
+    --phi:     #a78bfa;  --phi-dim:  #4c1d95;
+    --mis:     #60a5fa;  --mis-dim:  #1e3a5f;
+    --qwen:    #34d399;  --qwen-dim: #064e3b;
+    --accent:  #00ff88;
+    --text:    #e2e8f0;
+    --muted:   #475569;
+    --mono:    'JetBrains Mono', monospace;
+    --sans:    'Syne', sans-serif;
   }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html { scroll-behavior:smooth; }
+  body { background:var(--bg); color:var(--text); font-family:var(--sans); overflow-x:hidden; }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  /* SCROLL PROGRESS */
+  #prog { position:fixed; top:0; left:0; height:2px; width:0; background:linear-gradient(90deg,#7c3aed,var(--accent),#60a5fa); z-index:999; transition:width .1s linear; }
 
-  html { scroll-behavior: smooth; }
+  /* BG GRID */
+  body::before { content:''; position:fixed; inset:0; background-image:linear-gradient(rgba(0,255,136,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,.022) 1px,transparent 1px); background-size:40px 40px; pointer-events:none; z-index:0; }
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--sans);
-    overflow-x: hidden;
-  }
+  /* ORBS */
+  .orb { position:fixed; border-radius:50%; filter:blur(120px); opacity:.1; pointer-events:none; z-index:0; animation:drift 20s ease-in-out infinite alternate; }
+  .orb1 { width:600px; height:600px; background:#7c3aed; top:-200px; left:-200px; }
+  .orb2 { width:500px; height:500px; background:#2563eb; bottom:-150px; right:-150px; animation-delay:-7s; }
+  .orb3 { width:400px; height:400px; background:#059669; top:40%; left:50%; animation-delay:-14s; }
+  @keyframes drift { from{transform:translate(0,0) scale(1)} to{transform:translate(40px,30px) scale(1.1)} }
 
-  /* ── BACKGROUND GRID ── */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,255,136,0.025) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,255,136,0.025) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
+  /* LAYOUT */
+  .container { max-width:1100px; margin:0 auto; padding:0 32px; position:relative; z-index:1; }
 
-  /* ── GLOW ORBS ── */
-  .orb {
-    position: fixed;
-    border-radius: 50%;
-    filter: blur(120px);
-    opacity: 0.12;
-    pointer-events: none;
-    z-index: 0;
-    animation: drift 20s ease-in-out infinite alternate;
-  }
-  .orb1 { width: 600px; height: 600px; background: #7c3aed; top: -200px; left: -200px; animation-delay: 0s; }
-  .orb2 { width: 500px; height: 500px; background: #2563eb; bottom: -150px; right: -150px; animation-delay: -7s; }
-  .orb3 { width: 400px; height: 400px; background: #059669; top: 40%; left: 50%; animation-delay: -14s; }
+  /* NAV */
+  nav { position:fixed; top:0; left:0; right:0; z-index:100; padding:16px 0; border-bottom:1px solid var(--border); background:rgba(6,8,16,.88); backdrop-filter:blur(20px); }
+  nav .inner { max-width:1100px; margin:0 auto; padding:0 32px; display:flex; justify-content:space-between; align-items:center; }
+  .nav-logo { font-family:var(--mono); font-size:13px; color:var(--accent); letter-spacing:1px; }
+  .nav-links { display:flex; gap:24px; align-items:center; flex-wrap:wrap; }
+  .nav-links a { font-size:11px; color:var(--muted); text-decoration:none; letter-spacing:2px; text-transform:uppercase; transition:color .2s; }
+  .nav-links a:hover { color:var(--text); }
+  .nav-gh { font-family:var(--mono); font-size:11px; padding:6px 14px; border:1px solid var(--accent); color:var(--accent); border-radius:4px; text-decoration:none; transition:background .2s; background:rgba(0,255,136,.05); }
+  .nav-gh:hover { background:rgba(0,255,136,.12); color:#fff; }
+  .theme-btn { width:36px; height:20px; border-radius:10px; border:1px solid var(--border); background:var(--bg3); cursor:pointer; position:relative; }
+  .theme-btn::after { content:''; position:absolute; top:3px; left:3px; width:12px; height:12px; border-radius:50%; background:var(--accent); transition:transform .3s; }
+  body.light { --bg:#f8fafc; --bg2:#f1f5f9; --bg3:#e2e8f0; --border:rgba(0,0,0,.08); --text:#0f172a; --muted:#64748b; }
+  body.light .theme-btn::after { transform:translateX(16px); background:#7c3aed; }
+  body.light nav { background:rgba(248,250,252,.92); }
+  body.light .orb { opacity:.04; }
+  body.light .code-block { background:#1e293b; }
 
-  @keyframes drift {
-    from { transform: translate(0, 0) scale(1); }
-    to   { transform: translate(40px, 30px) scale(1.1); }
-  }
+  /* HERO */
+  .hero { padding:160px 0 100px; text-align:center; }
+  .hero-eyebrow { font-family:var(--mono); font-size:12px; color:var(--accent); letter-spacing:4px; text-transform:uppercase; margin-bottom:24px; opacity:0; animation:fadeUp .8s ease forwards .2s; }
+  .hero-title { font-size:clamp(42px,7vw,88px); font-weight:800; line-height:1; margin-bottom:12px; opacity:0; animation:fadeUp .8s ease forwards .4s; }
+  .hero-title .mono-part { font-family:var(--mono); font-size:clamp(30px,5vw,62px); font-weight:700; color:var(--accent); display:block; text-shadow:0 0 40px rgba(0,255,136,.3); min-height:1.2em; }
+  .cursor { display:inline-block; animation:blink 1s step-end infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  .hero-sub { font-size:17px; color:var(--muted); max-width:560px; margin:24px auto 40px; line-height:1.7; opacity:0; animation:fadeUp .8s ease forwards .6s; }
+  .hero-badges { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; opacity:0; animation:fadeUp .8s ease forwards .8s; margin-bottom:40px; }
+  .badge { font-family:var(--mono); font-size:11px; padding:6px 14px; border-radius:4px; border:1px solid; letter-spacing:1px; }
+  .badge.g { color:var(--qwen);  border-color:var(--qwen-dim);  background:rgba(5,150,105,.08); }
+  .badge.p { color:var(--phi);   border-color:var(--phi-dim);   background:rgba(124,58,237,.08); }
+  .badge.b { color:var(--mis);   border-color:var(--mis-dim);   background:rgba(37,99,235,.08); }
+  .badge.w { color:#94a3b8; border-color:#1e293b; background:rgba(255,255,255,.03); }
+  .hero-cta { display:flex; gap:16px; justify-content:center; opacity:0; animation:fadeUp .8s ease forwards 1s; }
+  .btn-p { font-family:var(--mono); font-size:12px; padding:12px 28px; background:var(--accent); color:#060810; border-radius:6px; text-decoration:none; font-weight:700; letter-spacing:1px; transition:opacity .2s,transform .2s; display:inline-block; }
+  .btn-p:hover { opacity:.85; transform:translateY(-2px); }
+  .btn-s { font-family:var(--mono); font-size:12px; padding:12px 28px; border:1px solid var(--border); color:var(--muted); border-radius:6px; text-decoration:none; letter-spacing:1px; transition:border-color .2s,color .2s,transform .2s; display:inline-block; }
+  .btn-s:hover { border-color:var(--text); color:var(--text); transform:translateY(-2px); }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
 
-  /* ── LAYOUT ── */
-  .container { max-width: 1100px; margin: 0 auto; padding: 0 32px; position: relative; z-index: 1; }
+  /* SCROLL REVEAL */
+  .reveal { opacity:0; transform:translateY(32px); transition:opacity .7s ease,transform .7s ease; }
+  .reveal.visible { opacity:1; transform:translateY(0); }
 
-  /* ── NAV ── */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-    padding: 16px 0;
-    border-bottom: 1px solid var(--border);
-    background: rgba(6,8,16,0.85);
-    backdrop-filter: blur(20px);
-  }
-  nav .inner { max-width: 1100px; margin: 0 auto; padding: 0 32px; display: flex; justify-content: space-between; align-items: center; }
-  .nav-logo { font-family: var(--mono); font-size: 13px; color: var(--accent); letter-spacing: 1px; }
-  .nav-links { display: flex; gap: 32px; }
-  .nav-links a { font-size: 12px; color: var(--muted); text-decoration: none; letter-spacing: 2px; text-transform: uppercase; transition: color 0.2s; }
-  .nav-links a:hover { color: var(--text); }
+  /* SECTIONS */
+  section { padding:80px 0; border-top:1px solid var(--border); }
+  .sec-label { font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:4px; text-transform:uppercase; margin-bottom:12px; }
+  .sec-title { font-size:32px; font-weight:700; margin-bottom:40px; color:var(--text); }
 
-  /* ── HERO ── */
-  .hero {
-    padding: 160px 0 100px;
-    text-align: center;
-  }
-  .hero-eyebrow {
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--accent);
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    margin-bottom: 24px;
-    opacity: 0;
-    animation: fadeUp 0.8s ease forwards 0.2s;
-  }
-  .hero-title {
-    font-size: clamp(42px, 7vw, 88px);
-    font-weight: 800;
-    line-height: 1.0;
-    margin-bottom: 12px;
-    opacity: 0;
-    animation: fadeUp 0.8s ease forwards 0.4s;
-  }
-  .hero-title .mono-part {
-    font-family: var(--mono);
-    font-size: clamp(32px, 5vw, 64px);
-    font-weight: 700;
-    color: var(--accent);
-    display: block;
-    text-shadow: 0 0 40px rgba(0,255,136,0.3);
-  }
-  .hero-title .tag-part {
-    color: var(--text);
-  }
-  .hero-sub {
-    font-size: 17px;
-    color: var(--muted);
-    max-width: 560px;
-    margin: 24px auto 48px;
-    line-height: 1.7;
-    font-weight: 400;
-    opacity: 0;
-    animation: fadeUp 0.8s ease forwards 0.6s;
-  }
-  .hero-badges {
-    display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
-    opacity: 0;
-    animation: fadeUp 0.8s ease forwards 0.8s;
-  }
-  .badge {
-    font-family: var(--mono);
-    font-size: 11px;
-    padding: 6px 14px;
-    border-radius: 4px;
-    border: 1px solid;
-    letter-spacing: 1px;
-  }
-  .badge.green  { color: var(--qwen);  border-color: var(--qwen-dim);  background: rgba(5,150,105,0.08); }
-  .badge.purple { color: var(--phi);   border-color: var(--phi-dim);   background: rgba(124,58,237,0.08); }
-  .badge.blue   { color: var(--mis);   border-color: var(--mis-dim);   background: rgba(37,99,235,0.08); }
-  .badge.white  { color: #94a3b8; border-color: #1e293b; background: rgba(255,255,255,0.03); }
+  /* STEPS */
+  .steps { display:flex; flex-direction:column; }
+  .step { display:grid; grid-template-columns:64px 1fr; }
+  .step-line { display:flex; flex-direction:column; align-items:center; }
+  .step-num { width:40px; height:40px; border-radius:50%; border:1px solid var(--accent); display:flex; align-items:center; justify-content:center; font-family:var(--mono); font-size:12px; color:var(--accent); flex-shrink:0; background:rgba(0,255,136,.05); }
+  .step-con { flex:1; width:1px; background:var(--border); margin:8px 0; }
+  .step:last-child .step-con { display:none; }
+  .step-body { padding:0 0 44px 20px; }
+  .step-body h3 { font-size:16px; font-weight:700; color:var(--text); margin-bottom:8px; line-height:40px; }
+  .step-body p { font-size:14px; color:var(--muted); line-height:1.7; margin-bottom:12px; }
 
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  /* CODE BLOCKS */
+  .code-block { background:#0d1117; border:1px solid var(--border); border-radius:8px; font-family:var(--mono); font-size:12px; position:relative; overflow:hidden; }
+  .code-block::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,var(--accent),transparent); }
+  .code-top { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; border-bottom:1px solid var(--border); background:#080d14; }
+  .code-dots { display:flex; gap:6px; }
+  .cd { width:10px; height:10px; border-radius:50%; }
+  .cd.r{background:#ff5f57} .cd.y{background:#febc2e} .cd.g{background:#28c840}
+  .code-lang { font-size:10px; color:#334155; letter-spacing:1px; }
+  .copy-btn { font-family:var(--mono); font-size:10px; color:#334155; background:none; border:1px solid #1e293b; border-radius:4px; padding:3px 10px; cursor:pointer; transition:color .2s,border-color .2s; letter-spacing:1px; }
+  .copy-btn:hover { color:var(--accent); border-color:var(--accent); }
+  .copy-btn.ok { color:var(--qwen); border-color:var(--qwen-dim); }
+  .code-body { padding:16px 20px; line-height:2; max-height:420px; overflow-y:auto; }
+  .cm { color:#334155; } .kw { color:var(--phi); } .st { color:var(--qwen); } .cd2 { color:#e2e8f0; }
 
-  /* ── SECTION ── */
-  section { padding: 80px 0; border-top: 1px solid var(--border); }
-  .section-label {
-    font-family: var(--mono);
-    font-size: 11px;
-    color: var(--accent);
-    letter-spacing: 4px;
-    text-transform: uppercase;
-    margin-bottom: 12px;
-  }
-  .section-title {
-    font-size: 32px;
-    font-weight: 700;
-    margin-bottom: 40px;
-    color: var(--text);
-  }
+  /* MODEL CARDS */
+  .model-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+  .mc { border-radius:12px; overflow:hidden; border:1px solid; transition:transform .25s,box-shadow .25s; }
+  .mc:hover { transform:translateY(-6px); }
+  .mc.phi { border-color:var(--phi-dim); } .mc.phi:hover { box-shadow:0 20px 40px rgba(124,58,237,.15); }
+  .mc.mis { border-color:var(--mis-dim); } .mc.mis:hover { box-shadow:0 20px 40px rgba(37,99,235,.15); }
+  .mc.qw  { border-color:var(--qwen-dim);} .mc.qw:hover  { box-shadow:0 20px 40px rgba(5,150,105,.15); }
+  .mc-top { padding:24px; }
+  .mc.phi .mc-top { background:linear-gradient(160deg,#0d0020,#130030); }
+  .mc.mis .mc-top { background:linear-gradient(160deg,#00101a,#001828); }
+  .mc.qw  .mc-top { background:linear-gradient(160deg,#001008,#001814); }
+  .mc-name { font-family:var(--mono); font-size:15px; font-weight:700; margin-bottom:4px; }
+  .mc.phi .mc-name{color:var(--phi)} .mc.mis .mc-name{color:var(--mis)} .mc.qw .mc-name{color:var(--qwen)}
+  .mc-role { font-size:11px; color:#475569; font-style:italic; margin-bottom:16px; }
+  .mc-size { font-family:var(--mono); font-size:10px; padding:3px 10px; border-radius:4px; display:inline-block; }
+  .mc.phi .mc-size { background:rgba(124,58,237,.15); color:#c4b5fd; border:1px solid var(--phi-dim); }
+  .mc.mis .mc-size { background:rgba(37,99,235,.15);  color:#93c5fd; border:1px solid var(--mis-dim); }
+  .mc.qw  .mc-size { background:rgba(5,150,105,.15);  color:#6ee7b7; border:1px solid var(--qwen-dim);}
+  .mc-bot { padding:16px 24px; background:var(--bg2); }
+  .mc-desc { font-size:12px; color:var(--muted); line-height:1.7; }
 
-  /* ── SETUP STEPS ── */
-  .steps { display: flex; flex-direction: column; gap: 0; }
-  .step { display: grid; grid-template-columns: 64px 1fr; gap: 0; }
-  .step-line { display: flex; flex-direction: column; align-items: center; }
-  .step-num {
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    border: 1px solid var(--accent);
-    display: flex; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 12px; color: var(--accent);
-    flex-shrink: 0;
-    background: rgba(0,255,136,0.05);
-  }
-  .step-connector { flex: 1; width: 1px; background: var(--border); margin: 8px 0; }
-  .step:last-child .step-connector { display: none; }
-  .step-content { padding: 0 0 40px 20px; }
-  .step-content h3 { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 8px; line-height: 40px; }
-  .step-content p { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 12px; }
-  .code-block {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 16px 20px;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--accent);
-    line-height: 2;
-    position: relative;
-    overflow: hidden;
-  }
-  .code-block::before {
-    content: '';
-    position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent), transparent);
-  }
-  .code-block .comment { color: #334155; }
-  .code-block .cmd { color: #e2e8f0; }
-  .code-block .flag { color: var(--phi); }
+  /* BENCHMARK */
+  .bt-wrap { border-radius:12px; overflow:hidden; border:1px solid var(--border); }
+  .bt { width:100%; border-collapse:collapse; }
+  .bt thead tr { background:linear-gradient(90deg,#0a0020,#0a0030,#0a0020); }
+  .bt thead th { padding:14px 20px; font-size:11px; letter-spacing:2px; text-transform:uppercase; font-family:var(--mono); border-bottom:1px solid rgba(124,58,237,.2); }
+  .bt thead th:first-child { text-align:left; color:var(--muted); }
+  .bt thead th:nth-child(2){color:var(--phi)} .bt thead th:nth-child(3){color:var(--mis)} .bt thead th:nth-child(4){color:var(--qwen)} .bt thead th:nth-child(5){color:#fbbf24}
+  .bt tbody tr { border-bottom:1px solid rgba(255,255,255,.03); background:var(--bg2); transition:background .15s; }
+  .bt tbody tr:hover { background:var(--bg3); }
+  .bt tbody tr.avg { background:#080015; border-top:1px solid rgba(124,58,237,.2); }
+  .bt tbody td { padding:14px 20px; text-align:center; font-family:var(--mono); font-size:13px; }
+  .bt tbody td:first-child { text-align:left; font-family:var(--sans); font-size:13px; color:#94a3b8; }
+  .vp{color:var(--phi);font-weight:700;font-size:15px} .vm{color:var(--mis)} .vq{color:var(--qwen)} .vw{color:#fbbf24}
+  .bt tbody tr.avg td { font-weight:700; font-size:15px; }
+  .bt tbody tr.avg td:first-child { font-family:var(--mono); font-size:10px; letter-spacing:2px; color:#fff; }
+  .bc { display:flex; align-items:center; gap:8px; justify-content:center; }
+  .mb { height:3px; border-radius:2px; }
+  .mb.p{background:linear-gradient(90deg,#7c3aed,var(--phi))} .mb.m{background:linear-gradient(90deg,#1d4ed8,var(--mis))} .mb.q{background:linear-gradient(90deg,#059669,var(--qwen))}
 
-  /* ── MODEL CARDS ── */
-  .model-cards { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-  .model-card { border-radius: 12px; overflow: hidden; border: 1px solid; transition: transform 0.25s, box-shadow 0.25s; }
-  .model-card:hover { transform: translateY(-6px); }
-  .model-card.phi { border-color: var(--phi-dim); box-shadow: 0 0 0 rgba(124,58,237,0); }
-  .model-card.phi:hover { box-shadow: 0 20px 40px rgba(124,58,237,0.15); }
-  .model-card.mis { border-color: var(--mis-dim); }
-  .model-card.mis:hover { box-shadow: 0 20px 40px rgba(37,99,235,0.15); }
-  .model-card.qwen { border-color: var(--qwen-dim); }
-  .model-card.qwen:hover { box-shadow: 0 20px 40px rgba(5,150,105,0.15); }
-  .model-card-top { padding: 24px; }
-  .model-card.phi .model-card-top { background: linear-gradient(160deg, #0d0020, #130030); }
-  .model-card.mis .model-card-top { background: linear-gradient(160deg, #00101a, #001828); }
-  .model-card.qwen .model-card-top { background: linear-gradient(160deg, #001008, #001814); }
-  .model-name { font-family: var(--mono); font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-  .model-card.phi .model-name { color: var(--phi); }
-  .model-card.mis .model-name { color: var(--mis); }
-  .model-card.qwen .model-name { color: var(--qwen); }
-  .model-role { font-size: 11px; color: #475569; font-style: italic; margin-bottom: 16px; }
-  .model-size { font-family: var(--mono); font-size: 10px; padding: 3px 10px; border-radius: 4px; display: inline-block; }
-  .model-card.phi .model-size { background: rgba(124,58,237,0.15); color: #c4b5fd; border: 1px solid var(--phi-dim); }
-  .model-card.mis .model-size { background: rgba(37,99,235,0.15); color: #93c5fd; border: 1px solid var(--mis-dim); }
-  .model-card.qwen .model-size { background: rgba(5,150,105,0.15); color: #6ee7b7; border: 1px solid var(--qwen-dim); }
-  .model-card-bottom { padding: 16px 24px; background: var(--bg2); }
-  .model-desc { font-size: 12px; color: var(--muted); line-height: 1.7; }
+  /* GPU */
+  .gpu-hdr { background:var(--bg3); border:1px solid var(--border); border-radius:10px 10px 0 0; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); }
+  .gpu-ttl { font-family:var(--mono); font-size:12px; color:var(--accent); display:flex; align-items:center; gap:8px; }
+  .pdot { width:8px; height:8px; border-radius:50%; background:#ef4444; animation:pdot 1.2s infinite; }
+  @keyframes pdot { 0%,100%{opacity:1} 50%{opacity:.3} }
+  .gpu-chip { font-family:var(--mono); font-size:10px; color:var(--qwen); background:rgba(5,150,105,.1); border:1px solid var(--qwen-dim); padding:4px 12px; border-radius:4px; }
+  .gt { width:100%; border-collapse:collapse; border:1px solid var(--border); border-top:none; border-radius:0 0 10px 10px; overflow:hidden; }
+  .gt thead th { padding:12px 20px; font-size:10px; letter-spacing:3px; text-transform:uppercase; font-family:var(--mono); background:var(--bg2); border-bottom:1px solid var(--border); text-align:center; }
+  .gt thead th:first-child{text-align:left;color:var(--muted)} .gt thead th:nth-child(2){color:#4ade80} .gt thead th:nth-child(3){color:#ef4444} .gt thead th:nth-child(4){color:var(--mis)}
+  .gt tbody tr { border-bottom:1px solid rgba(255,255,255,.03); background:var(--bg); transition:background .15s; }
+  .gt tbody tr:hover { background:var(--bg2); }
+  .gt tbody td { padding:14px 20px; text-align:center; font-family:var(--mono); font-size:13px; }
+  .gt tbody td:first-child { text-align:left; font-family:var(--sans); font-size:13px; color:#64748b; }
+  .vi{color:#4ade80} .vk{color:#ef4444;font-weight:700;font-size:16px;text-shadow:0 0 10px rgba(239,68,68,.4)} .va{color:#60a5fa}
 
-  /* ── BENCHMARK TABLE ── */
-  .bench-wrap { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
-  .bench-table { width: 100%; border-collapse: collapse; }
-  .bench-table thead tr { background: linear-gradient(90deg, #0a0020, #0a0030, #0a0020); }
-  .bench-table thead th { padding: 14px 20px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-family: var(--mono); border-bottom: 1px solid rgba(124,58,237,0.2); }
-  .bench-table thead th:first-child { text-align: left; color: var(--muted); }
-  .bench-table thead th:nth-child(2) { color: var(--phi); }
-  .bench-table thead th:nth-child(3) { color: var(--mis); }
-  .bench-table thead th:nth-child(4) { color: var(--qwen); }
-  .bench-table thead th:nth-child(5) { color: #fbbf24; }
-  .bench-table tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); background: var(--bg2); transition: background 0.15s; }
-  .bench-table tbody tr:hover { background: var(--bg3); }
-  .bench-table tbody tr.avg { background: #080015; border-top: 1px solid rgba(124,58,237,0.2); }
-  .bench-table tbody td { padding: 14px 20px; text-align: center; font-family: var(--mono); font-size: 13px; }
-  .bench-table tbody td:first-child { text-align: left; font-family: var(--sans); font-size: 13px; color: #94a3b8; }
-  .bench-table .v-phi { color: var(--phi); font-weight: 700; font-size: 15px; }
-  .bench-table .v-mis { color: var(--mis); }
-  .bench-table .v-qwen { color: var(--qwen); }
-  .bench-table .v-win { color: #fbbf24; font-size: 13px; }
-  .bench-table tbody tr.avg td { font-weight: 700; font-size: 15px; }
-  .bench-table tbody tr.avg td:first-child { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; color: #fff; }
-  .bar-cell { display: flex; align-items: center; gap: 8px; justify-content: center; }
-  .mini-bar { height: 3px; border-radius: 2px; }
-  .mini-bar.phi { background: linear-gradient(90deg, #7c3aed, var(--phi)); }
-  .mini-bar.mis { background: linear-gradient(90deg, #1d4ed8, var(--mis)); }
-  .mini-bar.qwen { background: linear-gradient(90deg, #059669, var(--qwen)); }
+  /* USE TILES */
+  .ut-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+  .ut { border-radius:12px; overflow:hidden; border:1px solid; transition:transform .25s; }
+  .ut:hover { transform:translateY(-4px); }
+  .ut.phi{border-color:var(--phi-dim)} .ut.mis{border-color:var(--mis-dim)} .ut.qw{border-color:var(--qwen-dim)}
+  .ut-top { padding:22px; }
+  .ut.phi .ut-top{background:linear-gradient(160deg,#0d0020,#130030)} .ut.mis .ut-top{background:linear-gradient(160deg,#00101a,#001828)} .ut.qw .ut-top{background:linear-gradient(160deg,#001008,#001814)}
+  .ut-name { font-family:var(--mono); font-size:14px; font-weight:700; margin-bottom:4px; }
+  .ut.phi .ut-name{color:var(--phi)} .ut.mis .ut-name{color:var(--mis)} .ut.qw .ut-name{color:var(--qwen)}
+  .ut-tag { font-size:11px; font-style:italic; color:#334155; margin-bottom:16px; }
+  .ui { font-size:12px; color:#94a3b8; padding:5px 0; border-bottom:1px solid rgba(255,255,255,.04); display:flex; gap:8px; }
+  .ui:last-child { border-bottom:none; }
+  .ua { color:#334155; }
+  .ut-bot { padding:14px 22px; background:var(--bg2); font-size:11px; color:#475569; font-style:italic; }
+  .ut-bot::before { content:'⚠ '; color:#f59e0b; font-style:normal; }
 
-  /* ── GPU TELEMETRY ── */
-  .gpu-header-bar {
-    background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 10px 10px 0 0;
-    padding: 14px 20px;
-    display: flex; justify-content: space-between; align-items: center;
-    border-bottom: 1px solid var(--border);
-  }
-  .gpu-header-bar .gpu-title { font-family: var(--mono); font-size: 12px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
-  .pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: #ef4444; animation: pulsedot 1.2s infinite; }
-  @keyframes pulsedot { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .gpu-badge-chip { font-family: var(--mono); font-size: 10px; color: var(--qwen); background: rgba(5,150,105,0.1); border: 1px solid var(--qwen-dim); padding: 4px 12px; border-radius: 4px; }
-  .gpu-table { width: 100%; border-collapse: collapse; border: 1px solid var(--border); border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; }
-  .gpu-table thead th { padding: 12px 20px; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; font-family: var(--mono); background: var(--bg2); border-bottom: 1px solid var(--border); text-align: center; }
-  .gpu-table thead th:first-child { text-align: left; color: var(--muted); }
-  .gpu-table thead th:nth-child(2) { color: #4ade80; }
-  .gpu-table thead th:nth-child(3) { color: #ef4444; }
-  .gpu-table thead th:nth-child(4) { color: var(--mis); }
-  .gpu-table tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); background: var(--bg); transition: background 0.15s; }
-  .gpu-table tbody tr:hover { background: var(--bg2); }
-  .gpu-table tbody td { padding: 14px 20px; text-align: center; font-family: var(--mono); font-size: 13px; }
-  .gpu-table tbody td:first-child { text-align: left; font-family: var(--sans); font-size: 13px; color: #64748b; }
-  .v-idle { color: #4ade80; }
-  .v-peak { color: #ef4444; font-weight: 700; font-size: 16px; text-shadow: 0 0 10px rgba(239,68,68,0.4); }
-  .v-after { color: #60a5fa; }
+  /* SPEC TABLE */
+  .st-wrap { width:100%; border-collapse:collapse; border:1px solid var(--border); border-radius:10px; overflow:hidden; }
+  .st-wrap tbody tr { border-bottom:1px solid rgba(255,255,255,.03); }
+  .st-wrap tbody tr:nth-child(odd){background:var(--bg2)} .st-wrap tbody tr:nth-child(even){background:var(--bg)}
+  .st-wrap tbody tr:hover { background:var(--bg3); }
+  .st-wrap tbody td { padding:14px 24px; font-size:13px; }
+  .st-wrap tbody td:first-child { font-family:var(--mono); font-size:11px; color:var(--muted); letter-spacing:1px; width:200px; }
+  .st-wrap tbody td:last-child { color:var(--text); font-family:var(--mono); }
 
-  /* ── USE CASE TILES ── */
-  .use-tiles { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
-  .use-tile { border-radius: 12px; overflow: hidden; border: 1px solid; transition: transform 0.25s; }
-  .use-tile:hover { transform: translateY(-4px); }
-  .use-tile.phi { border-color: var(--phi-dim); }
-  .use-tile.mis { border-color: var(--mis-dim); }
-  .use-tile.qwen { border-color: var(--qwen-dim); }
-  .use-tile-top { padding: 22px; }
-  .use-tile.phi .use-tile-top { background: linear-gradient(160deg, #0d0020, #130030); }
-  .use-tile.mis .use-tile-top { background: linear-gradient(160deg, #00101a, #001828); }
-  .use-tile.qwen .use-tile-top { background: linear-gradient(160deg, #001008, #001814); }
-  .use-tile-model { font-family: var(--mono); font-size: 14px; font-weight: 700; margin-bottom: 4px; }
-  .use-tile.phi .use-tile-model { color: var(--phi); }
-  .use-tile.mis .use-tile-model { color: var(--mis); }
-  .use-tile.qwen .use-tile-model { color: var(--qwen); }
-  .use-tile-tag { font-size: 11px; font-style: italic; color: #334155; margin-bottom: 16px; }
-  .use-item { font-size: 12px; color: #94a3b8; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.04); display: flex; gap: 8px; }
-  .use-item:last-child { border-bottom: none; }
-  .use-arrow { color: #334155; }
-  .use-tile-bottom { padding: 14px 22px; background: var(--bg2); font-size: 11px; color: #475569; font-style: italic; }
-  .use-tile-bottom::before { content: '⚠ '; color: #f59e0b; font-style: normal; }
+  /* CODE VIEWER TABS */
+  .cv-tabs { display:flex; border-bottom:1px solid var(--border); }
+  .cv-tab { font-family:var(--mono); font-size:11px; padding:10px 20px; color:var(--muted); cursor:pointer; border:none; border-bottom:2px solid transparent; background:none; letter-spacing:1px; transition:color .2s,border-color .2s; }
+  .cv-tab.on { color:var(--accent); border-bottom-color:var(--accent); }
+  .cv-tab:hover:not(.on) { color:var(--text); }
+  .cv-panel { display:none; }
+  .cv-panel.on { display:block; }
 
-  /* ── SPEC TABLE ── */
-  .spec-table { width: 100%; border-collapse: collapse; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-  .spec-table tbody tr { border-bottom: 1px solid rgba(255,255,255,0.03); }
-  .spec-table tbody tr:nth-child(odd) { background: var(--bg2); }
-  .spec-table tbody tr:nth-child(even) { background: var(--bg); }
-  .spec-table tbody tr:hover { background: var(--bg3); }
-  .spec-table tbody td { padding: 14px 24px; font-size: 13px; }
-  .spec-table tbody td:first-child { font-family: var(--mono); font-size: 11px; color: var(--muted); letter-spacing: 1px; width: 200px; }
-  .spec-table tbody td:last-child { color: var(--text); font-family: var(--mono); font-size: 13px; }
+  /* ARTICLE CTA */
+  .acta { margin-top:60px; background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(0,255,136,.05)); border:1px solid rgba(124,58,237,.2); border-radius:16px; padding:40px; display:flex; justify-content:space-between; align-items:center; gap:32px; }
+  .acta h3 { font-size:20px; font-weight:700; margin-bottom:8px; }
+  .acta p { font-size:14px; color:var(--muted); }
 
-  /* ── FOOTER ── */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 60px 0;
-    text-align: center;
-  }
-  .footer-logo { font-family: var(--mono); font-size: 20px; color: var(--accent); margin-bottom: 12px; text-shadow: 0 0 20px rgba(0,255,136,0.3); }
-  .footer-sub { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
-  .footer-tags { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
-  .footer-tag { font-family: var(--mono); font-size: 10px; color: #334155; border: 1px solid #1e293b; padding: 4px 10px; border-radius: 4px; }
-  .footer-copy { font-size: 11px; color: #1e293b; margin-top: 40px; font-family: var(--mono); }
+  /* FOOTER */
+  footer { border-top:1px solid var(--border); padding:60px 0; text-align:center; }
+  .ft-logo { font-family:var(--mono); font-size:20px; color:var(--accent); margin-bottom:12px; text-shadow:0 0 20px rgba(0,255,136,.3); }
+  .ft-sub { font-size:13px; color:var(--muted); margin-bottom:32px; line-height:1.8; }
+  .ft-tags { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:40px; }
+  .ft-tag { font-family:var(--mono); font-size:10px; color:#334155; border:1px solid #1e293b; padding:4px 10px; border-radius:4px; }
+  .ft-copy { font-size:11px; color:#1e293b; font-family:var(--mono); }
 
-  /* ── RESPONSIVE ── */
-  @media (max-width: 720px) {
-    .model-cards, .use-tiles { grid-template-columns: 1fr; }
-    .hero-title { font-size: 38px; }
-    .hero-title .mono-part { font-size: 28px; }
+  @media(max-width:768px){
+    .model-grid,.ut-grid{grid-template-columns:1fr}
+    .hero-title{font-size:36px} .hero-title .mono-part{font-size:26px}
+    .nav-links{display:none}
+    .acta{flex-direction:column;text-align:center}
   }
 </style>
 </head>
 <body>
 
+<div id="prog"></div>
 <div class="orb orb1"></div>
 <div class="orb orb2"></div>
 <div class="orb orb3"></div>
 
-<!-- ── NAV ── -->
+<!-- NAV -->
 <nav>
   <div class="inner">
     <span class="nav-logo">localhost:11434</span>
@@ -356,86 +254,83 @@
       <a href="#benchmark">Benchmark</a>
       <a href="#gpu">GPU</a>
       <a href="#guide">Guide</a>
+      <a href="#code">Code</a>
+      <a href="https://github.com/gitcrumbs/slm-launchpad" target="_blank" class="nav-gh">GitHub ↗</a>
+      <button class="theme-btn" id="themeBtn" title="Toggle theme"></button>
     </div>
   </div>
 </nav>
 
-<!-- ── HERO ── -->
+<!-- HERO -->
 <div class="container">
   <div class="hero">
     <div class="hero-eyebrow">// local ai experiment · windows · rtx 5070</div>
     <h1 class="hero-title">
-      <span class="mono-part">localhost:11434</span>
-      <span class="tag-part">The Address Where<br>My AI Lives</span>
+      <span class="mono-part" id="typed"></span>
+      <span>The Address Where<br>My AI Lives</span>
     </h1>
     <p class="hero-sub">No cloud. No API keys. No monthly bill. Just a curious mind, a laptop, and an AI running quietly in the background — waiting.</p>
     <div class="hero-badges">
-      <span class="badge green">ollama</span>
-      <span class="badge purple">phi3:mini</span>
-      <span class="badge blue">mistral:7b</span>
-      <span class="badge green">qwen2.5-coder:7b</span>
-      <span class="badge white">python 3.x</span>
-      <span class="badge white">vs code</span>
-      <span class="badge white">rtx 5070 laptop</span>
+      <span class="badge g">ollama</span>
+      <span class="badge p">phi3:mini</span>
+      <span class="badge b">mistral:7b</span>
+      <span class="badge g">qwen2.5-coder:7b</span>
+      <span class="badge w">python 3.x</span>
+      <span class="badge w">vs code</span>
+      <span class="badge w">rtx 5070 laptop</span>
+    </div>
+    <div class="hero-cta">
+      <a href="#setup" class="btn-p">Get Started →</a>
+      <a href="https://github.com/gitcrumbs/slm-launchpad" target="_blank" class="btn-s">View on GitHub</a>
     </div>
   </div>
 </div>
 
-<!-- ── SETUP ── -->
+<!-- SETUP -->
 <section id="setup">
   <div class="container">
-    <div class="section-label">// 01</div>
-    <div class="section-title">Getting Started</div>
+    <div class="reveal"><div class="sec-label">// 01</div><div class="sec-title">Getting Started</div></div>
     <div class="steps">
-      <div class="step">
-        <div class="step-line"><div class="step-num">01</div><div class="step-connector"></div></div>
-        <div class="step-content">
+      <div class="step reveal">
+        <div class="step-line"><div class="step-num">01</div><div class="step-con"></div></div>
+        <div class="step-body">
           <h3>Install Ollama</h3>
-          <p>Download the Windows installer from ollama.com/download and run it. Installs silently, starts a background service on port 11434.</p>
+          <p>Download the Windows installer from ollama.com/download. Installs silently and starts a background service on port 11434.</p>
           <div class="code-block">
-            <span class="comment"># Verify installation (new terminal)</span><br>
-            <span class="cmd">ollama --version</span><br><br>
-            <span class="comment"># If not recognized, add to PATH (CMD)</span><br>
-            <span class="cmd">set PATH=%PATH%;C:\Users\&lt;you&gt;\AppData\Local\Programs\Ollama</span>
+            <div class="code-top"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">cmd</span><button class="copy-btn" onclick="cp(this)">copy</button></div>
+            <div class="code-body"><span class="cm"># Verify (open a fresh terminal)</span><br><span class="cd2">ollama --version</span><br><br><span class="cm"># If not recognized — add to PATH</span><br><span class="cd2">set PATH=%PATH%;C:\Users\&lt;you&gt;\AppData\Local\Programs\Ollama</span><br><span class="cm"># Make permanent</span><br><span class="cd2">setx PATH "%PATH%;C:\Users\&lt;you&gt;\AppData\Local\Programs\Ollama"</span></div>
           </div>
         </div>
       </div>
-      <div class="step">
-        <div class="step-line"><div class="step-num">02</div><div class="step-connector"></div></div>
-        <div class="step-content">
+      <div class="step reveal">
+        <div class="step-line"><div class="step-num">02</div><div class="step-con"></div></div>
+        <div class="step-body">
           <h3>Set Up Python Environment in VS Code</h3>
           <p>Create a virtual environment and install dependencies in your project folder.</p>
           <div class="code-block">
-            <span class="cmd">python -m venv venv</span><br>
-            <span class="cmd">venv\Scripts\activate</span><br>
-            <span class="cmd">pip install ollama rich</span>
+            <div class="code-top"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">cmd</span><button class="copy-btn" onclick="cp(this)">copy</button></div>
+            <div class="code-body"><span class="cd2">python -m venv venv</span><br><span class="cd2">venv\Scripts\activate</span><br><span class="cd2">pip install ollama rich</span></div>
           </div>
         </div>
       </div>
-      <div class="step">
-        <div class="step-line"><div class="step-num">03</div><div class="step-connector"></div></div>
-        <div class="step-content">
+      <div class="step reveal">
+        <div class="step-line"><div class="step-num">03</div><div class="step-con"></div></div>
+        <div class="step-body">
           <h3>Pull Models</h3>
-          <p>Ollama auto-detects your NVIDIA GPU — no CUDA config needed. RTX 5070 with 8GB VRAM handles all three models.</p>
+          <p>Ollama auto-detects your NVIDIA GPU. RTX 5070 with 8GB VRAM handles all three models.</p>
           <div class="code-block">
-            <span class="cmd">ollama pull phi3:mini</span>       <span class="comment"># 2.3 GB</span><br>
-            <span class="cmd">ollama pull mistral:7b</span>      <span class="comment"># 4.1 GB</span><br>
-            <span class="cmd">ollama pull qwen2.5-coder:7b</span> <span class="comment"># 4.7 GB</span>
+            <div class="code-top"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">cmd</span><button class="copy-btn" onclick="cp(this)">copy</button></div>
+            <div class="code-body"><span class="cd2">ollama pull phi3:mini</span>         <span class="cm"># 2.3 GB</span><br><span class="cd2">ollama pull mistral:7b</span>        <span class="cm"># 4.1 GB</span><br><span class="cd2">ollama pull qwen2.5-coder:7b</span>  <span class="cm"># 4.7 GB</span><br><br><span class="cm"># Verify all models are ready</span><br><span class="cd2">ollama list</span></div>
           </div>
         </div>
       </div>
-      <div class="step">
-        <div class="step-line"><div class="step-num">04</div><div class="step-connector"></div></div>
-        <div class="step-content">
+      <div class="step reveal">
+        <div class="step-line"><div class="step-num">04</div><div class="step-con"></div></div>
+        <div class="step-body">
           <h3>Project Structure</h3>
           <div class="code-block">
-            <span class="cmd">slm-workspace/</span><br>
-            <span class="cmd">├── venv/</span><br>
-            <span class="cmd">├── tests/</span><br>
-            <span class="cmd">│&nbsp;&nbsp; └── compare_models.py</span><br>
-            <span class="cmd">├── api/</span><br>
-            <span class="cmd">│&nbsp;&nbsp; └── ollama_requests.http</span><br>
-            <span class="cmd">└── main.py</span>
+            <div class="code-top"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">tree</span><button class="copy-btn" onclick="cp(this)">copy</button></div>
+            <div class="code-body"><span class="cd2">slm-workspace/</span><br><span class="cd2">├── venv/</span><br><span class="cd2">├── tests/</span><br><span class="cd2">│&nbsp;&nbsp; └── compare_models.py</span><br><span class="cd2">├── api/</span><br><span class="cd2">│&nbsp;&nbsp; └── ollama_requests.http</span><br><span class="cd2">└── main.py</span></div>
           </div>
         </div>
       </div>
@@ -443,225 +338,234 @@
   </div>
 </section>
 
-<!-- ── MODELS ── -->
+<!-- MODELS -->
 <section id="models">
   <div class="container">
-    <div class="section-label">// 02</div>
-    <div class="section-title">Models Tested</div>
-    <div class="model-cards">
-      <div class="model-card phi">
-        <div class="model-card-top">
-          <div class="model-name">phi3:mini</div>
-          <div class="model-role">Microsoft's Efficient Powerhouse</div>
-          <div class="model-size">2.3 GB · 3.8B params</div>
-        </div>
-        <div class="model-card-bottom">
-          <p class="model-desc">Despite its small 3.8B parameter count, phi3:mini punches well above its weight. Trained with a strong focus on reasoning and instruction-following. Fits entirely in VRAM with room to spare.</p>
-        </div>
-      </div>
-      <div class="model-card mis">
-        <div class="model-card-top">
-          <div class="model-name">mistral:7b</div>
-          <div class="model-role">The Reliable All-Rounder</div>
-          <div class="model-size">4.1 GB · 7B params</div>
-        </div>
-        <div class="model-card-bottom">
-          <p class="model-desc">Widely regarded as one of the best 7B models available. Uses grouped-query attention and sliding window attention for efficient inference.</p>
-        </div>
-      </div>
-      <div class="model-card qwen">
-        <div class="model-card-top">
-          <div class="model-name">qwen2.5-coder:7b</div>
-          <div class="model-role">The Code Specialist</div>
-          <div class="model-size">4.7 GB · 7B params</div>
-        </div>
-        <div class="model-card-bottom">
-          <p class="model-desc">Purpose-built for software development tasks — trained on a massive corpus of code across dozens of programming languages. Optimized for generation, debugging, and explanation.</p>
-        </div>
-      </div>
+    <div class="reveal"><div class="sec-label">// 02</div><div class="sec-title">Models Tested</div></div>
+    <div class="model-grid reveal">
+      <div class="mc phi"><div class="mc-top"><div class="mc-name">phi3:mini</div><div class="mc-role">Microsoft's Efficient Powerhouse</div><div class="mc-size">2.3 GB · 3.8B params</div></div><div class="mc-bot"><p class="mc-desc">Despite its small 3.8B parameter count, phi3:mini punches well above its weight. Strong focus on reasoning and instruction-following. Fits entirely in VRAM with room to spare — enabling blazing fast inference.</p></div></div>
+      <div class="mc mis"><div class="mc-top"><div class="mc-name">mistral:7b</div><div class="mc-role">The Reliable All-Rounder</div><div class="mc-size">4.1 GB · 7B params</div></div><div class="mc-bot"><p class="mc-desc">Widely regarded as one of the best 7B models available. Uses grouped-query attention and sliding window attention. More thorough and accurate on complex reasoning tasks.</p></div></div>
+      <div class="mc qw"><div class="mc-top"><div class="mc-name">qwen2.5-coder:7b</div><div class="mc-role">The Code Specialist</div><div class="mc-size">4.7 GB · 7B params</div></div><div class="mc-bot"><p class="mc-desc">Purpose-built for software development — trained on a massive corpus of code across dozens of programming languages. Best docstrings, edge case handling, and code explanation quality of the three.</p></div></div>
     </div>
   </div>
 </section>
 
-<!-- ── BENCHMARK ── -->
+<!-- BENCHMARK -->
 <section id="benchmark">
   <div class="container">
-    <div class="section-label">// 03</div>
-    <div class="section-title">Benchmark Results</div>
-    <div class="bench-wrap">
-      <table class="bench-table">
-        <thead>
-          <tr>
-            <th>Category</th>
-            <th>phi3:mini</th>
-            <th>mistral:7b</th>
-            <th>qwen2.5-coder</th>
-            <th>Winner</th>
-          </tr>
-        </thead>
+    <div class="reveal"><div class="sec-label">// 03</div><div class="sec-title">Benchmark Results</div></div>
+    <div class="bt-wrap reveal">
+      <table class="bt">
+        <thead><tr><th>Category</th><th>phi3:mini</th><th>mistral:7b</th><th>qwen2.5-coder</th><th>Winner</th></tr></thead>
         <tbody>
-          <tr>
-            <td>💬 Chat / Q&A</td>
-            <td class="v-phi"><div class="bar-cell"><div class="mini-bar phi" style="width:60px"></div>59.63</div></td>
-            <td class="v-mis"><div class="bar-cell"><div class="mini-bar mis" style="width:31px"></div>30.74</div></td>
-            <td class="v-qwen"><div class="bar-cell"><div class="mini-bar qwen" style="width:24px"></div>24.44</div></td>
-            <td class="v-win">🏆 phi3</td>
-          </tr>
-          <tr>
-            <td>🧠 Reasoning</td>
-            <td class="v-phi"><div class="bar-cell"><div class="mini-bar phi" style="width:54px"></div>54.40</div></td>
-            <td class="v-mis"><div class="bar-cell"><div class="mini-bar mis" style="width:39px"></div>39.40</div></td>
-            <td class="v-qwen"><div class="bar-cell"><div class="mini-bar qwen" style="width:42px"></div>42.45</div></td>
-            <td class="v-win">🏆 phi3</td>
-          </tr>
-          <tr>
-            <td>⚙️ Code Gen</td>
-            <td class="v-phi"><div class="bar-cell"><div class="mini-bar phi" style="width:71px"></div>70.86</div></td>
-            <td class="v-mis"><div class="bar-cell"><div class="mini-bar mis" style="width:39px"></div>39.47</div></td>
-            <td class="v-qwen"><div class="bar-cell"><div class="mini-bar qwen" style="width:44px"></div>44.09</div></td>
-            <td class="v-win">🏆 phi3</td>
-          </tr>
-          <tr>
-            <td>🐛 Debug Code</td>
-            <td class="v-phi"><div class="bar-cell"><div class="mini-bar phi" style="width:52px"></div>51.87</div></td>
-            <td class="v-mis"><div class="bar-cell"><div class="mini-bar mis" style="width:40px"></div>40.46</div></td>
-            <td class="v-qwen"><div class="bar-cell"><div class="mini-bar qwen" style="width:40px"></div>40.48</div></td>
-            <td class="v-win">🏆 phi3</td>
-          </tr>
-          <tr>
-            <td>📝 Summarization</td>
-            <td class="v-phi"><div class="bar-cell"><div class="mini-bar phi" style="width:31px"></div>31.32</div></td>
-            <td class="v-mis"><div class="bar-cell"><div class="mini-bar mis" style="width:18px"></div>18.14</div></td>
-            <td class="v-qwen"><div class="bar-cell"><div class="mini-bar qwen" style="width:14px"></div>13.84</div></td>
-            <td class="v-win">🏆 phi3</td>
-          </tr>
-          <tr>
-            <td>🎨 Creativity</td>
-            <td class="v-phi"><div class="bar-cell"><div class="mini-bar phi" style="width:25px"></div>25.35</div></td>
-            <td class="v-mis"><div class="bar-cell"><div class="mini-bar mis" style="width:16px"></div>15.70</div></td>
-            <td class="v-qwen"><div class="bar-cell"><div class="mini-bar qwen" style="width:12px"></div>11.97</div></td>
-            <td class="v-win">🏆 phi3</td>
-          </tr>
-          <tr class="avg">
-            <td>AVG SPEED</td>
-            <td class="v-phi">48.91 tok/s</td>
-            <td class="v-mis">30.65 tok/s</td>
-            <td class="v-qwen">29.55 tok/s</td>
-            <td class="v-win">👑 phi3:mini</td>
-          </tr>
+          <tr><td>💬 Chat / Q&A</td>   <td class="vp"><div class="bc"><div class="mb p" style="width:60px"></div>59.63</div></td><td class="vm"><div class="bc"><div class="mb m" style="width:31px"></div>30.74</div></td><td class="vq"><div class="bc"><div class="mb q" style="width:24px"></div>24.44</div></td><td class="vw">🏆 phi3</td></tr>
+          <tr><td>🧠 Reasoning</td>    <td class="vp"><div class="bc"><div class="mb p" style="width:54px"></div>54.40</div></td><td class="vm"><div class="bc"><div class="mb m" style="width:39px"></div>39.40</div></td><td class="vq"><div class="bc"><div class="mb q" style="width:42px"></div>42.45</div></td><td class="vw">🏆 phi3</td></tr>
+          <tr><td>⚙️ Code Gen</td>    <td class="vp"><div class="bc"><div class="mb p" style="width:71px"></div>70.86</div></td><td class="vm"><div class="bc"><div class="mb m" style="width:39px"></div>39.47</div></td><td class="vq"><div class="bc"><div class="mb q" style="width:44px"></div>44.09</div></td><td class="vw">🏆 phi3</td></tr>
+          <tr><td>🐛 Debug Code</td>   <td class="vp"><div class="bc"><div class="mb p" style="width:52px"></div>51.87</div></td><td class="vm"><div class="bc"><div class="mb m" style="width:40px"></div>40.46</div></td><td class="vq"><div class="bc"><div class="mb q" style="width:40px"></div>40.48</div></td><td class="vw">🏆 phi3</td></tr>
+          <tr><td>📝 Summarization</td><td class="vp"><div class="bc"><div class="mb p" style="width:31px"></div>31.32</div></td><td class="vm"><div class="bc"><div class="mb m" style="width:18px"></div>18.14</div></td><td class="vq"><div class="bc"><div class="mb q" style="width:14px"></div>13.84</div></td><td class="vw">🏆 phi3</td></tr>
+          <tr><td>🎨 Creativity</td>   <td class="vp"><div class="bc"><div class="mb p" style="width:25px"></div>25.35</div></td><td class="vm"><div class="bc"><div class="mb m" style="width:16px"></div>15.70</div></td><td class="vq"><div class="bc"><div class="mb q" style="width:12px"></div>11.97</div></td><td class="vw">🏆 phi3</td></tr>
+          <tr class="avg"><td>AVG SPEED</td><td class="vp">48.91 tok/s</td><td class="vm">30.65 tok/s</td><td class="vq">29.55 tok/s</td><td class="vw">👑 phi3:mini</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 </section>
 
-<!-- ── GPU ── -->
+<!-- GPU -->
 <section id="gpu">
   <div class="container">
-    <div class="section-label">// 04</div>
-    <div class="section-title">Real GPU Telemetry</div>
-    <div class="gpu-header-bar">
-      <div class="gpu-title"><div class="pulse-dot"></div>nvidia-smi dmon — captured live during benchmark</div>
-      <div class="gpu-badge-chip">RTX 5070 Laptop · 8GB GDDR7</div>
-    </div>
-    <table class="gpu-table">
-      <thead>
-        <tr>
-          <th>Metric</th>
-          <th>● Idle</th>
-          <th>🔥 Peak Inference</th>
-          <th>● After</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>⚡ Power Draw</td>    <td class="v-idle">7–10 W</td>    <td class="v-peak">113 W</td>      <td class="v-after">9.79 W</td></tr>
-        <tr><td>🌡️ Temperature</td>  <td class="v-idle">52°C</td>       <td class="v-peak">75°C</td>       <td class="v-after">52°C</td></tr>
-        <tr><td>🔲 SM Utilization</td><td class="v-idle">4–8%</td>       <td class="v-peak">97%</td>        <td class="v-after">4–5%</td></tr>
-        <tr><td>💾 Memory Util</td>   <td class="v-idle">6–7%</td>       <td class="v-peak">90%</td>        <td class="v-after">6–7%</td></tr>
-        <tr><td>⚙️ Clock Speed</td>  <td class="v-idle">225 MHz</td>    <td class="v-peak">1545 MHz</td>   <td class="v-after">270 MHz</td></tr>
-        <tr><td>🧠 Memory Clock</td> <td class="v-idle">405 MHz</td>    <td class="v-peak">12101 MHz</td>  <td class="v-after">810 MHz</td></tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<!-- ── GUIDE ── -->
-<section id="guide">
-  <div class="container">
-    <div class="section-label">// 05</div>
-    <div class="section-title">When to Use Each Model</div>
-    <div class="use-tiles">
-      <div class="use-tile phi">
-        <div class="use-tile-top">
-          <div class="use-tile-model">phi3:mini</div>
-          <div class="use-tile-tag">Fastest · 48.91 avg tok/s</div>
-          <div class="use-item"><span class="use-arrow">→</span><span>Quick Q&A</span></div>
-          <div class="use-item"><span class="use-arrow">→</span><span>Summarization</span></div>
-          <div class="use-item"><span class="use-arrow">→</span><span>Fast prototyping</span></div>
-          <div class="use-item"><span class="use-arrow">→</span><span>Everyday tasks</span></div>
-        </div>
-        <div class="use-tile-bottom">May hallucinate on complex tasks</div>
+    <div class="reveal"><div class="sec-label">// 04</div><div class="sec-title">Real GPU Telemetry</div></div>
+    <div class="reveal">
+      <div class="gpu-hdr">
+        <div class="gpu-ttl"><div class="pdot"></div>nvidia-smi dmon — captured live during benchmark</div>
+        <div class="gpu-chip">RTX 5070 Laptop · 8GB GDDR7</div>
       </div>
-      <div class="use-tile mis">
-        <div class="use-tile-top">
-          <div class="use-tile-model">mistral:7b</div>
-          <div class="use-tile-tag">Balanced · 30.65 avg tok/s</div>
-          <div class="use-item"><span class="use-arrow">→</span><span>Deep reasoning</span></div>
-          <div class="use-item"><span class="use-arrow">→</span><span>Long-form writing</span></div>
-          <div class="use-item"><span class="use-arrow">→</span><span>Accuracy-critical tasks</span></div>
-          <div class="use-item"><span class="use-arrow">→</span><span>Research & analysis</span></div>
-        </div>
-        <div class="use-tile-bottom">Slower throughput on 8GB VRAM</div>
-      </div>
-      <div class="use-tile qwen">
-        <div class="use-tile-top">
-          <div class="use-tile-model">qwen2.5-coder</div>
-          <div class="use-tile-tag">Code-focused · 29.55 avg tok/s</div>
-          <div class="use-item"><span class="use-arrow">→</span><span>Production code gen</span></div>
-          <div class="use-item"><span class="use-arrow">→</span><span>Debugging sessions</span></div>
-          <div class="use-item"><span class="use-arrow">→</span><span>Multi-language coding</span></div>
-          <div class="use-item"><span class="use-arrow">→</span><span>Code explanation</span></div>
-        </div>
-        <div class="use-tile-bottom">Best with 12GB+ VRAM</div>
-      </div>
-    </div>
-
-    <!-- ── HARDWARE ── -->
-    <div style="margin-top:60px">
-      <div class="section-label" style="margin-bottom:12px">// Hardware</div>
-      <table class="spec-table">
+      <table class="gt">
+        <thead><tr><th>Metric</th><th>● Idle</th><th>🔥 Peak Inference</th><th>● After</th></tr></thead>
         <tbody>
-          <tr><td>GPU</td><td>NVIDIA GeForce RTX 5070 Laptop GPU</td></tr>
-          <tr><td>VRAM</td><td>8 GB GDDR7 (8151 MiB)</td></tr>
-          <tr><td>RAM</td><td>31.6 GB (15.7 GB used during tests)</td></tr>
-          <tr><td>Driver</td><td>32.0.15.7702 (CUDA 12.x)</td></tr>
-          <tr><td>OS</td><td>Windows 11</td></tr>
-          <tr><td>Runtime</td><td>Ollama + Python 3.x (venv)</td></tr>
-          <tr><td>IDE</td><td>Visual Studio Code</td></tr>
+          <tr><td>⚡ Power Draw</td>     <td class="vi">7–10 W</td>   <td class="vk">113 W</td>      <td class="va">9.79 W</td></tr>
+          <tr><td>🌡️ Temperature</td>   <td class="vi">52°C</td>      <td class="vk">75°C</td>       <td class="va">52°C</td></tr>
+          <tr><td>🔲 SM Utilization</td> <td class="vi">4–8%</td>      <td class="vk">97%</td>        <td class="va">4–5%</td></tr>
+          <tr><td>💾 Memory Util</td>    <td class="vi">6–7%</td>      <td class="vk">90%</td>        <td class="va">6–7%</td></tr>
+          <tr><td>⚙️ Clock Speed</td>   <td class="vi">225 MHz</td>   <td class="vk">1545 MHz</td>   <td class="va">270 MHz</td></tr>
+          <tr><td>🧠 Memory Clock</td>  <td class="vi">405 MHz</td>   <td class="vk">12101 MHz</td>  <td class="va">810 MHz</td></tr>
         </tbody>
       </table>
     </div>
   </div>
 </section>
 
-<!-- ── FOOTER ── -->
+<!-- GUIDE -->
+<section id="guide">
+  <div class="container">
+    <div class="reveal"><div class="sec-label">// 05</div><div class="sec-title">When to Use Each Model</div></div>
+    <div class="ut-grid reveal">
+      <div class="ut phi"><div class="ut-top"><div class="ut-name">phi3:mini</div><div class="ut-tag">Fastest · 48.91 avg tok/s</div><div class="ui"><span class="ua">→</span><span>Quick Q&A</span></div><div class="ui"><span class="ua">→</span><span>Summarization</span></div><div class="ui"><span class="ua">→</span><span>Fast prototyping</span></div><div class="ui"><span class="ua">→</span><span>Everyday tasks</span></div></div><div class="ut-bot">May hallucinate on complex tasks</div></div>
+      <div class="ut mis"><div class="ut-top"><div class="ut-name">mistral:7b</div><div class="ut-tag">Balanced · 30.65 avg tok/s</div><div class="ui"><span class="ua">→</span><span>Deep reasoning</span></div><div class="ui"><span class="ua">→</span><span>Long-form writing</span></div><div class="ui"><span class="ua">→</span><span>Accuracy-critical tasks</span></div><div class="ui"><span class="ua">→</span><span>Research & analysis</span></div></div><div class="ut-bot">Slower throughput on 8GB VRAM</div></div>
+      <div class="ut qw"><div class="ut-top"><div class="ut-name">qwen2.5-coder</div><div class="ut-tag">Code-focused · 29.55 avg tok/s</div><div class="ui"><span class="ua">→</span><span>Production code gen</span></div><div class="ui"><span class="ua">→</span><span>Debugging sessions</span></div><div class="ui"><span class="ua">→</span><span>Multi-language coding</span></div><div class="ui"><span class="ua">→</span><span>Code explanation</span></div></div><div class="ut-bot">Best with 12GB+ VRAM</div></div>
+    </div>
+    <div style="margin-top:60px" class="reveal">
+      <div class="sec-label" style="margin-bottom:12px">// Hardware</div>
+      <table class="st-wrap"><tbody>
+        <tr><td>GPU</td><td>NVIDIA GeForce RTX 5070 Laptop GPU</td></tr>
+        <tr><td>VRAM</td><td>8 GB GDDR7 (8151 MiB)</td></tr>
+        <tr><td>RAM</td><td>31.6 GB (15.7 GB used during tests)</td></tr>
+        <tr><td>Driver</td><td>32.0.15.7702 (CUDA 12.x)</td></tr>
+        <tr><td>OS</td><td>Windows 11</td></tr>
+        <tr><td>Runtime</td><td>Ollama + Python 3.x (venv)</td></tr>
+        <tr><td>IDE</td><td>Visual Studio Code</td></tr>
+      </tbody></table>
+    </div>
+  </div>
+</section>
+
+<!-- CODE -->
+<section id="code">
+  <div class="container">
+    <div class="reveal"><div class="sec-label">// 06</div><div class="sec-title">Run It Yourself</div></div>
+    <div class="reveal">
+      <div class="cv-tabs">
+        <button class="cv-tab on" onclick="tab(this,'p1')">main.py</button>
+        <button class="cv-tab"    onclick="tab(this,'p2')">compare_models.py</button>
+        <button class="cv-tab"    onclick="tab(this,'p3')">ollama_requests.http</button>
+      </div>
+      <div id="p1" class="cv-panel on">
+        <div class="code-block" style="border-radius:0 0 8px 8px">
+          <div class="code-top"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">python</span><button class="copy-btn" onclick="cp(this)">copy</button></div>
+          <div class="code-body">
+<span class="kw">import</span> <span class="cd2">ollama</span>, <span class="cd2">time</span><br>
+<span class="kw">from</span> <span class="cd2">rich.console</span> <span class="kw">import</span> <span class="cd2">Console</span><br>
+<span class="kw">from</span> <span class="cd2">rich.panel</span> <span class="kw">import</span> <span class="cd2">Panel</span><br><br>
+<span class="cd2">console</span> = <span class="cd2">Console()</span><br>
+<span class="cd2">MODEL</span> = <span class="st">"phi3:mini"</span><br><br>
+<span class="kw">def</span> <span class="cd2">run_test</span>(label, prompt, category):<br>
+&nbsp;&nbsp;<span class="cd2">console</span>.rule(<span class="st">f"🧪 {category} — {label}"</span>)<br>
+&nbsp;&nbsp;<span class="cd2">start</span> = time.time()<br>
+&nbsp;&nbsp;<span class="cd2">response</span> = ollama.chat(model=MODEL, messages=[{<span class="st">"role"</span>:<span class="st">"user"</span>,<span class="st">"content"</span>:prompt}])<br>
+&nbsp;&nbsp;<span class="cd2">elapsed</span> = time.time() - start<br>
+&nbsp;&nbsp;<span class="cd2">tokens</span> = response.get(<span class="st">'eval_count'</span>, 0)<br>
+&nbsp;&nbsp;<span class="cd2">console</span>.print(Panel(response[<span class="st">'message'</span>][<span class="st">'content'</span>]))<br>
+&nbsp;&nbsp;<span class="kw">return</span> {<span class="st">"time"</span>: round(elapsed,2), <span class="st">"tokens"</span>: tokens, <span class="st">"tok_per_sec"</span>: round(tokens/elapsed,2)}
+          </div>
+        </div>
+      </div>
+      <div id="p2" class="cv-panel">
+        <div class="code-block" style="border-radius:0 0 8px 8px">
+          <div class="code-top"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">python</span><button class="copy-btn" onclick="cp(this)">copy</button></div>
+          <div class="code-body">
+<span class="cd2">MODELS</span> = [<span class="st">"phi3:mini"</span>, <span class="st">"mistral:7b"</span>, <span class="st">"qwen2.5-coder:7b"</span>]<br><br>
+<span class="cd2">TESTS</span> = [<br>
+&nbsp;&nbsp;(<span class="st">"Chat / Q&A"</span>,    <span class="st">"Explain black holes to a 10 year old in 5 sentences."</span>),<br>
+&nbsp;&nbsp;(<span class="st">"Reasoning"</span>,     <span class="st">"Train: 60km/h for 2.5h, then 80km/h for 1.5h. Total distance?"</span>),<br>
+&nbsp;&nbsp;(<span class="st">"Code Gen"</span>,      <span class="st">"Write a Python Sieve of Eratosthenes with docstring."</span>),<br>
+&nbsp;&nbsp;(<span class="st">"Debug Code"</span>,    <span class="st">"Fix: def avg(nums): return sum(nums)/len(nums); print(avg([]))"</span>),<br>
+&nbsp;&nbsp;(<span class="st">"Summarization"</span>, <span class="st">"Summarize in 2 sentences: Neural networks are..."</span>),<br>
+&nbsp;&nbsp;(<span class="st">"Creativity"</span>,    <span class="st">"Write a 4-line poem about artificial intelligence."</span>),<br>
+]<br><br>
+<span class="kw">for</span> category, prompt <span class="kw">in</span> TESTS:<br>
+&nbsp;&nbsp;<span class="kw">for</span> model <span class="kw">in</span> MODELS:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;start = time.time()<br>
+&nbsp;&nbsp;&nbsp;&nbsp;response = ollama.chat(model=model, messages=[{<span class="st">"role"</span>:<span class="st">"user"</span>,<span class="st">"content"</span>:prompt}])<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="cm"># record elapsed, tokens, tok/s → summary table</span>
+          </div>
+        </div>
+      </div>
+      <div id="p3" class="cv-panel">
+        <div class="code-block" style="border-radius:0 0 8px 8px">
+          <div class="code-top"><div class="code-dots"><div class="cd r"></div><div class="cd y"></div><div class="cd g"></div></div><span class="code-lang">http</span><button class="copy-btn" onclick="cp(this)">copy</button></div>
+          <div class="code-body">
+<span class="cm">### Basic Chat</span><br>
+<span class="kw">POST</span> <span class="st">http://localhost:11434/api/chat</span><br>
+Content-Type: application/json<br><br>
+{<br>
+&nbsp;&nbsp;<span class="st">"model"</span>: <span class="st">"phi3:mini"</span>,<br>
+&nbsp;&nbsp;<span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Explain recursion simply"</span>}],<br>
+&nbsp;&nbsp;<span class="st">"stream"</span>: <span class="kw">false</span><br>
+}<br><br>
+<span class="cm">### Code Generation</span><br>
+<span class="kw">POST</span> <span class="st">http://localhost:11434/api/chat</span><br>
+Content-Type: application/json<br><br>
+{<br>
+&nbsp;&nbsp;<span class="st">"model"</span>: <span class="st">"qwen2.5-coder:7b"</span>,<br>
+&nbsp;&nbsp;<span class="st">"messages"</span>: [{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: <span class="st">"Write a Python binary search"</span>}],<br>
+&nbsp;&nbsp;<span class="st">"stream"</span>: <span class="kw">false</span><br>
+}
+          </div>
+        </div>
+      </div>
+
+      <!-- Article CTA -->
+      <div class="acta reveal">
+        <div>
+          <h3>Read the Full Story on Medium</h3>
+          <p>Deep dive into the setup journey, benchmark analysis, GPU telemetry breakdown, and what it all means for local AI in 2026.</p>
+        </div>
+        <a href="#" class="btn-p">Read on Medium ↗</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
 <footer>
   <div class="container">
-    <div class="footer-logo">localhost:11434</div>
-    <div class="footer-sub">No cloud. No API keys. No monthly bill.<br>Just a curious mind and a machine that thinks offline.</div>
-    <div class="footer-tags">
-      <span class="footer-tag">#LocalAI</span>
-      <span class="footer-tag">#Ollama</span>
-      <span class="footer-tag">#Python</span>
-      <span class="footer-tag">#NVIDIA</span>
-      <span class="footer-tag">#OpenSource</span>
-      <span class="footer-tag">#MachineLearning</span>
-      <span class="footer-tag">#WindowsDev</span>
-      <span class="footer-tag">#BackyardAI</span>
+    <div class="ft-logo">localhost:11434</div>
+    <div class="ft-sub">No cloud. No API keys. No monthly bill.<br>Just a curious mind and a machine that thinks offline.</div>
+    <div class="ft-tags">
+      <span class="ft-tag">#LocalAI</span><span class="ft-tag">#Ollama</span><span class="ft-tag">#Python</span>
+      <span class="ft-tag">#NVIDIA</span><span class="ft-tag">#OpenSource</span><span class="ft-tag">#MachineLearning</span>
+      <span class="ft-tag">#WindowsDev</span><span class="ft-tag">#BackyardAI</span>
     </div>
-    <div class="footer-copy">// built with ollama · python · vs code · rtx 5070 · february 2026</div>
+    <div class="ft-copy">// built with ollama · python · vs code · rtx 5070 · february 2026</div>
   </div>
 </footer>
 
+<script>
+  // SCROLL PROGRESS
+  window.addEventListener('scroll', () => {
+    const pct = (window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100;
+    document.getElementById('prog').style.width = pct + '%';
+  });
+
+  // SCROLL REVEAL
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach((e, i) => { if (e.isIntersecting) setTimeout(() => e.target.classList.add('visible'), i * 80); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+  // TYPING EFFECT
+  const el = document.getElementById('typed');
+  const txt = 'localhost:11434';
+  let i = 0;
+  function type() {
+    if (i <= txt.length) {
+      el.innerHTML = txt.slice(0, i) + '<span class="cursor">_</span>';
+      i++;
+      setTimeout(type, i === 1 ? 800 : 80);
+    }
+  }
+  setTimeout(type, 600);
+
+  // COPY BUTTON
+  function cp(btn) {
+    const text = btn.closest('.code-block').querySelector('.code-body').innerText;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'copied!';
+      btn.classList.add('ok');
+      setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('ok'); }, 2000);
+    });
+  }
+
+  // CODE TABS
+  function tab(btn, id) {
+    document.querySelectorAll('.cv-tab').forEach(t => t.classList.remove('on'));
+    document.querySelectorAll('.cv-panel').forEach(p => p.classList.remove('on'));
+    btn.classList.add('on');
+    document.getElementById(id).classList.add('on');
+  }
+
+  // LIGHT / DARK TOGGLE
+  document.getElementById('themeBtn').addEventListener('click', () => document.body.classList.toggle('light'));
+</script>
 </body>
 </html>
